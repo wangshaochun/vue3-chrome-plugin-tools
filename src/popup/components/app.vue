@@ -1,58 +1,53 @@
 <template>
-  <div class="wrapper">
-<!--3个Tab-->
+  <div class="wrapper"> 
     <div class="tab">
-      <div class="tab-item" @click="tabIndex = 0">Base64</div>
-      <div class="tab-item" @click="tabIndex = 1">Unicode</div>
-      <div class="tab-item" @click="tabIndex = 2">时间戳转换</div>
-      <div class="tab-item" @click="tabIndex = 3">URL编解码</div>
-    </div>
-<!--3个内容-->
+      <div class="tab-item" @click="tabClick(0)">Base64</div>
+      <div class="tab-item" @click="tabClick(1)">Unicode</div>
+      <div class="tab-item" @click="tabClick(2)">时间戳转换</div>
+      <div class="tab-item" @click="tabClick(3)">URL编解码</div>
+    </div> 
     <div v-show="tabIndex === 0">
-      <div class="title">Base64转换</div>
       <div class="content">
         <!--输入内容，转换为Base64-->
-        <input type="text" v-model="base64" placeholder="请输入内容" />
-        <button @click="base64Encode">编码</button>
-        <button @click="base64Decode">解密</button>
-        <div class="showtime">{{base64EncodeStr}}</div>
+        <input type="text" v-model="base64" placeholder="Base64" />
+        <div><button @click="base64Encode">编码</button>
+        <button @click="base64Decode">解密</button> </div>
+        <div class="showContent">{{base64EncodeStr}}</div>
       </div>
     </div>
     <div v-show="tabIndex === 1">
-      <div class="title">Unicode</div>
       <div class="content">
         <!--输入内容，转换为Unicode-->
-        <input type="text" v-model="unicode" placeholder="请输入内容" />
-        <button @click="unicodeEncode">编码</button>
-        <button @click="unicodeDecode">解码</button>
-        <div class="showtime">{{unicodeEncodeStr}}</div>
+        <input type="text" v-model="unicode" placeholder="Unicode" />
+        <div><button @click="unicodeEncode">编码</button>
+        <button @click="unicodeDecode">解码</button></div>
+        <div class="showContent">{{unicodeEncodeStr}}</div>
       </div>
     </div>
     <div v-show="tabIndex === 2">
-      <div class="title">时间戳转换</div>
       <div class="content">
         <!--输入时间戳，转换为时间-->
-        <input type="text" v-model="timeStamp" placeholder="请输入时间戳" />
-        <button @click="timeStampToTime">转换</button>
-        <div class="showtime">{{time}}</div> 
+        <input type="text" v-model="timeStamp" placeholder=""/>
+        <div><button @click="timeStampToTime">转换</button></div>
+        <div class="showContent">{{time}}</div> 
       </div>
     </div>
     <div v-show="tabIndex === 3">
-      <div class="title">URL编解码</div>
       <div class="content">
         <!--输入内容，转换为URL编码-->
-        <input type="text" v-model="url" placeholder="请输入内容" />
-        <button @click="urlEncode">编码</button>
-        <button @click="urlDecode">解码</button>
-        <div class="showtime">{{urlEncodeStr}}</div>
+        <input type="text" v-model="url" placeholder="URL编码" />
+        <div><button @click="urlEncode">编码</button>
+        <button @click="urlDecode">解码</button></div>
+        <div class="showContent">{{urlEncodeStr}}</div>
       </div>
     </div>
   </div>
 </template>
 <script setup>
 import { ref } from 'vue'
-const timeStamp = ref(0);
-const time = ref('test');
+const date = new Date();
+const timeStamp = ref(date.getTime() / 1000);
+const time = ref('');
 const base64 = ref('');
 const unicode = ref('');
 const url = ref('');
@@ -89,6 +84,10 @@ const timeStampToTime = () => {
   const s = date.getSeconds();
   time.value = Y+M+D+h+m+s
 }
+// tab切换, 0: base64, 1: unicode, 2: 时间戳转换, 3: URL编解码,选择背景变色
+const tabClick = (index) => {
+  tabIndex.value = index;
+}
 </script>
 <style scoped>
 .wrapper{
@@ -100,17 +99,18 @@ input {
       padding: 5px;
       font-size: 16px;
     }
-.showtime {
+.showContent {
       margin-top: 10px;
       padding: 5px;
-      font-size: 16px;
+      font-size: 15px;
       border: 1px solid #ccc;
-      width: 180px;
+      width: 300px;
+      max-height: 200px;
     }
 button {
-      margin-left: 10px;
+      margin: 5px;
       padding: 5px;
-      font-size: 16px;
+      font-size: 15px;
       border: 1px solid #ccc;
       cursor: pointer;
     }
@@ -122,19 +122,18 @@ button {
     }
 .tab-item {
       cursor: pointer;
-    }
-.title {
-      text-align: center;
-      font-size: 20px;
       font-weight: bold;
-      margin-top: 10px;
+
     }
+.tab-item:active {
+	background-color: rgb(31, 154, 15);
+}
+
 .content {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100px;
+      justify-content: center; 
     }
 
 </style>
