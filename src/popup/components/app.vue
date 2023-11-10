@@ -1,18 +1,14 @@
 <template>
   <div class="wrapper"> 
     <div class="tab">
-      <div class="tab-item" @click="tabClick(0)">Base64</div>
+      <div class="tab-item" @click="tabClick(0)">密码显示</div>
       <div class="tab-item" @click="tabClick(1)">Unicode</div>
       <div class="tab-item" @click="tabClick(2)">时间戳转换</div>
       <div class="tab-item" @click="tabClick(3)">URL编解码</div>
     </div> 
     <div v-show="tabIndex === 0">
-      <div class="content">
-        <!--输入内容，转换为Base64-->
-        <input type="text" v-model="base64" placeholder="Base64" />
-        <div><button @click="base64Encode">编码</button>
-        <button @click="base64Decode">解密</button> </div>
-        <div class="showContent">{{base64EncodeStr}}</div>
+      <div class="content"> 
+        <div><button @click="showPwd">显示密码</button></div>
       </div>
     </div>
     <div v-show="tabIndex === 1">
@@ -44,23 +40,17 @@
   </div>
 </template>
 <script setup>
-import { ref } from 'vue'
+import { ref } from 'vue';
+
 const date = new Date();
 const timeStamp = ref(date.getTime() / 1000);
 const time = ref('');
-const base64 = ref('');
 const unicode = ref('');
 const url = ref('');
-const base64EncodeStr = ref('');
 const unicodeEncodeStr = ref('');
 const urlEncodeStr = ref('');
 const tabIndex = ref(0);
-const base64Encode = () => {
-  base64EncodeStr.value = window.btoa(base64.value)
-}
-const base64Decode = () => {
-  base64EncodeStr.value = window.atob(base64.value)
-}
+
 const unicodeEncode = () => {
   unicodeEncodeStr.value = escape(unicode.value).toLocaleLowerCase().replace(/%u/gi, '\\u')
 }
@@ -84,15 +74,43 @@ const timeStampToTime = () => {
   const s = date.getSeconds();
   time.value = Y+M+D+h+m+s
 }
-// tab切换, 0: base64, 1: unicode, 2: 时间戳转换, 3: URL编解码,选择背景变色
+// tab切换, 0: 页面密码显示, 1: unicode, 2: 时间戳转换, 3: URL编解码,选择背景变色
 const tabClick = (index) => {
   tabIndex.value = index;
 }
+
+
+
+// 获取当前选项卡ID
+const getCurrentTabId = (callback)=>{
+  chrome.tabs.query({active: true, currentWindow: true}, function(tabs)
+  {
+    if(callback) callback(tabs.length ? tabs[0].id: null);
+  });
+} 
+
+// 向content-script注入JS片段
+const executeScriptToCurrentTab = (code)=> {
+  getCurrentTabId((tabId) =>
+  {
+    chrome.tabs.executeScript(tabId, {code: code});
+  });
+}
+
+const showPwd = () => {
+  // 通过type=password 获取到input元素，修改type属性,向content-script注入JS片段
+  executeScriptToCurrentTab(`
+    var pwdInput = document.querySelector('input[type=password]');
+    if(pwdInput){
+      pwdInput.type = 'text';
+    }
+  `);
+}
+
 </script>
 <style scoped>
 .wrapper{
   width: 380px;
-  height: 200px;
 }
 input {
       width: 300px;
