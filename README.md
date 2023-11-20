@@ -2,12 +2,12 @@
 
 ## 安装依赖
 ```
-npm install --registry=https://registry.npmmirror.com
+pnpm install --registry=https://registry.npmmirror.com
 ```
  
 ### 打包
 ```
-npm run build
+pnpm run build
 ```
 
 ### 加载插件
