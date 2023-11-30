@@ -2,7 +2,7 @@
   <div class="wrapper"> 
     <div class="tab">
       <div class="tab-item" @click="tabClick(0)">密码显示</div>
-      <div class="tab-item" @click="tabClick(1)">Unicode</div>
+      <div class="tab-item" @click="tabClick(1)">Token显示</div>
       <div class="tab-item" @click="tabClick(2)">时间戳转换</div>
       <div class="tab-item" @click="tabClick(3)">URL编解码</div>
     </div> 
@@ -13,11 +13,7 @@
     </div>
     <div v-show="tabIndex === 1">
       <div class="content">
-        <!--输入内容，转换为Unicode-->
-        <input type="text" v-model="unicode" placeholder="Unicode" />
-        <div><button @click="unicodeEncode">编码</button>
-        <button @click="unicodeDecode">解码</button></div>
-        <div class="showContent">{{unicodeEncodeStr}}</div>
+        <div class="showContent">{{token}}</div>
       </div>
     </div>
     <div v-show="tabIndex === 2">
@@ -34,7 +30,7 @@
         <input type="text" v-model="url" placeholder="URL编码" />
         <div><button @click="urlEncode">编码</button>
         <button @click="urlDecode">解码</button></div>
-        <div class="showContent">{{urlEncodeStr}}</div>
+        <div class="showContent showDecode">{{urlEncodeStr}}</div>
       </div>
     </div>
   </div>
@@ -45,25 +41,32 @@ import { ref } from 'vue';
 const date = new Date();
 const timeStamp = ref(date.getTime() / 1000);
 const time = ref('');
-const unicode = ref('');
 const url = ref('');
-const unicodeEncodeStr = ref('');
 const urlEncodeStr = ref('');
 const tabIndex = ref(0);
+const token = ref('');
 
-const unicodeEncode = () => {
-  unicodeEncodeStr.value = escape(unicode.value).toLocaleLowerCase().replace(/%u/gi, '\\u')
+// tab切换, 0: 页面密码显示, 1: 显示 token, 2: 时间戳转换, 3: URL编解码
+const tabClick = (index) => {
+  tabIndex.value = index;
 }
-const unicodeDecode = () => {
-  unicodeEncodeStr.value = unescape(unicode.value.replace(/\\u/gi, '%u'))
-}
+
+//url编解码
 const urlEncode = () => {
   urlEncodeStr.value = encodeURIComponent(url.value)
 }
 const urlDecode = () => {
   urlEncodeStr.value = decodeURIComponent(url.value)
+  //如果为 json 格式，将其格式化
+  try {
+    const json = JSON.parse(urlEncodeStr.value)
+    urlEncodeStr.value = JSON.stringify(json, null, 2)
+  } catch (error) {
+    console.log('error', error)
+  }
 }
 
+// 时间戳转换
 const timeStampToTime = () => {
   const date = new Date(timeStamp.value * 1000);
   const Y = date.getFullYear() + '-';
@@ -74,11 +77,8 @@ const timeStampToTime = () => {
   const s = date.getSeconds();
   time.value = Y+M+D+h+m+s
 }
-// tab切换, 0: 页面密码显示, 1: unicode, 2: 时间戳转换, 3: URL编解码,选择背景变色
-const tabClick = (index) => {
-  tabIndex.value = index;
-}
-
+//todo timeStamp失去焦点时，转换为时间
+timeStampToTime()
 
 
 // 获取当前选项卡ID
@@ -97,6 +97,7 @@ const executeScriptToCurrentTab = (code)=> {
   });
 }
 
+// 显示密码
 const showPwd = () => {
   // 通过type=password 获取到input元素，修改type属性,向content-script注入JS片段
   executeScriptToCurrentTab(`
@@ -107,28 +108,47 @@ const showPwd = () => {
   `);
 }
 
+//显示 token
+// 监听来自content-script的消息
+chrome.runtime.onMessage.addListener(function(request)
+{
+  if(request.token){
+    console.log('request.token', request.token)
+    token.value = request.token;
+  }
+});
+
+
 </script>
 <style scoped>
 .wrapper{
   width: 380px;
+  font-family: monospace;
+  font-size: 14px;
 }
 input {
       width: 300px;
       padding: 5px;
-      font-size: 16px;
+      font-size: 15px;
     }
+
 .showContent {
       margin-top: 10px;
       padding: 5px;
-      font-size: 15px;
+      font-size: 14px;
       border: 1px solid #ccc;
       width: 300px;
-      max-height: 200px;
+      word-break: break-all;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      font-family: monospace;
+      line-height: 1.5;
+      background-color: #f5f5f5;
     }
 button {
-      margin: 5px;
-      padding: 5px;
-      font-size: 15px;
+      margin: 4px;
+      padding: 4px;
+      font-size: 14px;
       border: 1px solid #ccc;
       cursor: pointer;
     }
@@ -153,5 +173,4 @@ button {
       align-items: center;
       justify-content: center; 
     }
-
 </style>
